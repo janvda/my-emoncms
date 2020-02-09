@@ -32,6 +32,12 @@ services:
       options:
         max-size: "10m"
 
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 9003:8080  
+
   redis:
     # Official redis image
     image: redis:5
