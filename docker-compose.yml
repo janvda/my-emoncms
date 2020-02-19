@@ -17,7 +17,17 @@ services:
       # Link to MYSQL DB (see below)
       - db
       - redis
-
+    labels:
+      - "traefik.enable=true"
+    # HTTP (LAN) connection
+      - "traefik.http.routers.emoncms_lan.rule=Host(`emoncms.${LAN_HOSTNAME}`)"
+      - "traefik.http.routers.emoncms_lan.entrypoints=web"
+      - "traefik.http.routers.emoncms_lan.middlewares=traefik_auth"
+    # HTTPS (WAN) connection
+      - "traefik.http.routers.emoncms_wan.rule=Host(`emoncms.${WAN_HOSTNAME}`)"
+      - "traefik.http.routers.emoncms_wan.entrypoints=websecure"
+      - "traefik.http.routers.emoncms_wan.tls.certresolver=mytlschallenge"
+      - "traefik.http.routers.emoncms_wan.middlewares=traefik_auth"
   # MYSQL Database
   db:
     # Official MYSQL docker image
