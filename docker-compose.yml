@@ -2,6 +2,13 @@
 
 version: "3.7"
 
+# as default network we will use the external network of the core stack `nuc-jan`
+# this is needed for traefik.
+networks:
+  default:
+    external: 
+      name: nuc-jan_default
+
 services:
 
   # PHP & apache container using offical Docker PHP iamge
@@ -22,7 +29,7 @@ services:
     # HTTP (LAN) connection
       - "traefik.http.routers.emoncms_lan.rule=Host(`emoncms.${LAN_HOSTNAME}`)"
       - "traefik.http.routers.emoncms_lan.entrypoints=web"
-      - "traefik.http.routers.emoncms_lan.middlewares=traefik_auth"
+      #- "traefik.http.routers.emoncms_lan.middlewares=traefik_auth"
     # HTTPS (WAN) connection
       - "traefik.http.routers.emoncms_wan.rule=Host(`emoncms.${WAN_HOSTNAME}`)"
       - "traefik.http.routers.emoncms_wan.entrypoints=websecure"
