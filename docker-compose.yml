@@ -19,7 +19,7 @@ services:
       - emon-phpfina:/var/opt/emoncms/phpfina
       - emon-phptimeseries:/var/opt/emoncms/phptimeseries
     ports:
-      # Expose Emoncms on localhost port 8080
+      # Expose Emoncms on localhost port 9002
       - 9002:80
     links:
       # Link to MYSQL DB (see below)
