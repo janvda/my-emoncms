@@ -44,8 +44,8 @@ services:
     image: mariadb:latest
     environment:
       - "MYSQL_HOST=localhost"
-    expose:
-      - "3306"
+    ports:
+      - 3308:3306
     env_file:
       - '.env'
     volumes:
