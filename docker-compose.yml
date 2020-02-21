@@ -18,10 +18,15 @@ services:
       # mount docker volumes persistant inside docker container
       - emon-phpfina:/var/opt/emoncms/phpfina
       - emon-phptimeseries:/var/opt/emoncms/phptimeseries
+    ports:
+      # Expose Emoncms on localhost port 8080
+      - 9002:80
     links:
       # Link to MYSQL DB (see below)
       - db
       - redis
+    env_file:
+      - '.env'
     labels:
       - "traefik.enable=true"
     # HTTP (LAN) connection
@@ -39,6 +44,8 @@ services:
     image: mariadb:latest
     environment:
       - "MYSQL_HOST=localhost"
+    env_file:
+      - '.env'
     volumes:
       - emon-db-data:/var/lib/mysql
     logging:
@@ -51,6 +58,8 @@ services:
     image: redis:5
     volumes:
       - emon-redis-data:/data
+    env_file:
+      - '.env'
     logging:
       driver: json-file
       options:
