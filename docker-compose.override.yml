@@ -11,11 +11,11 @@ services:
       #- ./emoncms:/var/www/html
     env_file:
       # Use default enviroment variables file for dev
-      - 'default.docker-env'
+      - '.env'
 
   db:
     env_file:
-      - 'default.docker-env'
+      - '.env'
   redis:
     env_file:
-      - 'default.docker-env'
+      - '.env'
