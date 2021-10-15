@@ -1,12 +1,12 @@
 # Base docker compose, added to by docker-compose.override or docker-compose.prod. See Readme.md
-version: "3.7"
+version: "3.9"
 
 # as default network we will use the external network of the core stack `nuc-jan`
 # this is needed for traefik.
 networks:
   default:
     external: 
-      name: nuc-jan_default
+      name: nuc2_default
 
 services:
   # PHP & apache container using offical Docker PHP iamge
