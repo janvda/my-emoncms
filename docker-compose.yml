@@ -30,7 +30,7 @@ services:
     labels:
       - "traefik.enable=true"
     # HTTP (LAN) connection
-      - "traefik.http.routers.emoncms_lan.rule=Host(`emoncms.${LAN_HOSTNAME}`)"
+      - "traefik.http.routers.emoncms_lan.rule=Host(`emoncms.local`)"
       - "traefik.http.routers.emoncms_lan.entrypoints=web"
     # HTTPS (WAN) connection
       - "traefik.http.routers.emoncms_wan.rule=Host(`emoncms.${WAN_HOSTNAME}`)"
