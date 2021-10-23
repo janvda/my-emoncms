@@ -8,7 +8,8 @@ RUN apt-get update && apt-get install -y \
               libmosquitto-dev \
               gettext \
               nano \
-              git-core 
+              git-core \
+              iputils-ping default-mysql-client
 
 # Enable PHP modules
 RUN docker-php-ext-install -j$(nproc) mysqli curl json gettext

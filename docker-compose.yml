@@ -1,12 +1,13 @@
 # Base docker compose, added to by docker-compose.override or docker-compose.prod. See Readme.md
-version: "3.9"
+
+version: '3.9'
 
 # as default network we will use the external network of the core stack `nuc-jan`
 # this is needed for traefik.
 networks:
   default:
-    external: 
-      name: nuc2_default
+    external: true
+    name: nuc2_default
 
 services:
   # PHP & apache container using offical Docker PHP iamge
@@ -14,54 +15,56 @@ services:
     # If pre-built image from docker hub exists then use that (docker pull openenergymonitor/emoncms:latest) if not Buildcontainer see Dockerflile
     image: openenergymonitor/emoncms:latest
     build: .
+    ports:
+      # Expose Emoncms to the world on port 9002
+      - 9002:80
+    env_file:
+     # Use .docker-env with secure db credentials, ignored by git
+      - '.docker-env'
+    restart: always
+    environment:
+      # Set production enviroment variable flag, not currently used for anything but might be of use in the future
+      PRODUCTION: 'true'
     volumes:
       # mount docker volumes persistant inside docker container
       - emon-phpfina:/var/opt/emoncms/phpfina
       - emon-phptimeseries:/var/opt/emoncms/phptimeseries
-    ports:
-      # Expose Emoncms on localhost port 9002
-      - 9002:80
+      # Disable access to /php-info.php for security reasons
+      - /dev/null:/var/www/html/php-info.php
     links:
       # Link to MYSQL DB (see below)
       - db
       - redis
-    env_file:
-      - '.env'
     labels:
       - "traefik.enable=true"
     # HTTP (LAN) connection
       - "traefik.http.routers.emoncms_lan.rule=Host(`emoncms.local`)"
       - "traefik.http.routers.emoncms_lan.entrypoints=web"
-    # HTTPS (WAN) connection
-      - "traefik.http.routers.emoncms_wan.rule=Host(`emoncms.${WAN_HOSTNAME}`)"
-      - "traefik.http.routers.emoncms_wan.entrypoints=websecure"
-      - "traefik.http.routers.emoncms_wan.tls.certresolver=mytlschallenge"
-      # - "traefik.http.routers.emoncms_wan.middlewares=traefik_auth"
   # MYSQL Database
   db:
     # Official MYSQL docker image
     # To do: make compatiable with 5.7
     image: mariadb:latest
-    environment:
-      - "MYSQL_HOST=localhost"
-    ports:
-      - 3308:3306
-    env_file:
-      - '.env'
     volumes:
       - emon-db-data:/var/lib/mysql
     logging:
       driver: json-file
       options:
         max-size: "10m"
+    restart: always
+    environment:
+      - "MYSQL_HOST=localhost"
+    env_file:
+      - '.docker-env'
+    ports:
+      # Expose Emoncms to the world on port 9002
+      - 3308:3306
 
   redis:
     # Official redis image
     image: redis:5
     volumes:
       - emon-redis-data:/data
-    env_file:
-      - '.env'
     logging:
       driver: json-file
       options:
