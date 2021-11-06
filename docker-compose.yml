@@ -63,6 +63,7 @@ services:
   redis:
     # Official redis image
     image: redis:5
+    restart: always
     volumes:
       - emon-redis-data:/data
     logging:
