@@ -1,6 +1,12 @@
 # Base docker compose, added to by docker-compose.override or docker-compose.prod. See Readme.md
+version: "3.9"
 
-version: '2'
+# as default network we will use the external network of the core stack `nuc-jan`
+# this is needed for traefik.
+networks:
+  default:
+    name: nuc2_default
+    external: true
 
 services:
   # PHP & apache container using offical Docker PHP iamge
@@ -12,17 +18,36 @@ services:
       # mount docker volumes persistant inside docker container
       - emon-phpfina:/var/opt/emoncms/phpfina
       - emon-phptimeseries:/var/opt/emoncms/phptimeseries
+    ports:
+      # Expose Emoncms on localhost port 9002
+      - 9002:80
     links:
       - db
       - redis
       - mqtt
-
+    env_file:
+      - '.env'
+    labels:
+      - "traefik.enable=true"
+    # HTTP (LAN) connection
+      - "traefik.http.routers.emoncms_lan.rule=Host(`emoncms.${LAN_HOSTNAME}`)"
+      - "traefik.http.routers.emoncms_lan.entrypoints=web"
+    # HTTPS (WAN) connection
+      - "traefik.http.routers.emoncms_wan.rule=Host(`emoncms.${WAN_HOSTNAME}`)"
+      - "traefik.http.routers.emoncms_wan.entrypoints=websecure"
+      - "traefik.http.routers.emoncms_wan.tls.certresolver=mytlschallenge"
+      # - "traefik.http.routers.emoncms_wan.middlewares=traefik_auth"
+  # MYSQL Database
   db:
     image: mariadb:11.0
     environment:
       - "MYSQL_HOST=localhost"
       - "MARIADB_AUTO_UPGRADE=1"
       - "MARIADB_INITDB_SKIP_TZINFO=1"
+    ports:
+      - 3308:3306
+    env_file:
+      - '.env'
     volumes:
       - emon-db-data:/var/lib/mysql
     logging:
@@ -42,6 +67,7 @@ services:
   mqtt:
     image: eclipse-mosquitto:2.0
     build: mqtt/.
+    profiles: [ "dontstart"] 
     restart: always
     logging:
       driver: json-file
