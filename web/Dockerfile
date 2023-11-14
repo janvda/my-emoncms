@@ -1,21 +1,27 @@
 # Offical Docker PHP & Apache image https://hub.docker.com/_/php/
-FROM php:7.3.9-apache
+FROM php:8.0-apache
 
 # Install deps
 RUN apt-get update && apt-get install -y \
               libcurl4-gnutls-dev \
               libmcrypt-dev \
-              libmosquitto-dev \
               gettext \
               nano \
-              git-core 
+              git-core \
+              supervisor
 
 # Enable PHP modules
-RUN docker-php-ext-install -j$(nproc) mysqli curl json gettext
-RUN pecl install redis \
-  \ && docker-php-ext-enable redis
-RUN pecl install Mosquitto-beta \
-  \ && docker-php-ext-enable mosquitto
+RUN docker-php-ext-install -j$(nproc) mysqli gettext
+
+# Install redis
+COPY install_redis.sh /
+RUN chmod +x /install_redis.sh
+RUN /install_redis.sh
+
+# Install mosquitto
+COPY install_mosquitto.sh /
+RUN chmod +x /install_mosquitto.sh
+RUN /install_mosquitto.sh
 
 RUN a2enmod rewrite
 
@@ -37,6 +43,7 @@ RUN git clone https://github.com/emoncms/emoncms.git /var/www/emoncms
 RUN git clone https://github.com/emoncms/dashboard.git /var/www/emoncms/Modules/dashboard
 RUN git clone https://github.com/emoncms/graph.git /var/www/emoncms/Modules/graph
 RUN git clone https://github.com/emoncms/app.git /var/www/emoncms/Modules/app
+RUN git clone https://github.com/emoncms/device.git /var/www/emoncms/Modules/device
 
 COPY docker.settings.ini /var/www/emoncms/settings.ini
 
@@ -52,7 +59,6 @@ RUN mkdir /var/log/emoncms
 RUN touch /var/log/emoncms/emoncms.log
 RUN chmod 666 /var/log/emoncms/emoncms.log
 
-# TODO
-# Add Pecl :
-# - dio
-# - Swiftmailer
+# To start Apache and emoncms_mqtt from supervisord
+COPY config/supervisord.conf /etc/supervisor/supervisord.conf
+ENTRYPOINT [ "/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf" ]

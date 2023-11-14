@@ -5,15 +5,15 @@ version: "3.9"
 # this is needed for traefik.
 networks:
   default:
-    external: 
-      name: nuc2_default
+    name: nuc2_default
+    external: true
 
 services:
   # PHP & apache container using offical Docker PHP iamge
   web:
-    # If pre-built image from docker hub exists then use that (docker pull openenergymonitor/emoncms:latest) if not Buildcontainer see Dockerflile
+    # If pre-built image from docker hub exists then use that (docker pull openenergymonitor/emoncms:latest) if not build container see web/Dockerflile
     image: openenergymonitor/emoncms:latest
-    build: .
+    build: web/.
     volumes:
       # mount docker volumes persistant inside docker container
       - emon-phpfina:/var/opt/emoncms/phpfina
@@ -22,9 +22,9 @@ services:
       # Expose Emoncms on localhost port 9002
       - 9002:80
     links:
-      # Link to MYSQL DB (see below)
       - db
       - redis
+      - mqtt
     env_file:
       - '.env'
     labels:
@@ -39,11 +39,11 @@ services:
       # - "traefik.http.routers.emoncms_wan.middlewares=traefik_auth"
   # MYSQL Database
   db:
-    # Official MYSQL docker image
-    # To do: make compatiable with 5.7
-    image: mariadb:latest
+    image: mariadb:11.0
     environment:
       - "MYSQL_HOST=localhost"
+      - "MARIADB_AUTO_UPGRADE=1"
+      - "MARIADB_INITDB_SKIP_TZINFO=1"
     ports:
       - 3308:3306
     env_file:
@@ -56,12 +56,19 @@ services:
         max-size: "10m"
 
   redis:
-    # Official redis image
-    image: redis:5
+    image: redis:7.0
     volumes:
       - emon-redis-data:/data
-    env_file:
-      - '.env'
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+          
+  mqtt:
+    image: eclipse-mosquitto:2.0
+    build: mqtt/.
+    profiles: [ "dontstart"] 
+    restart: always
     logging:
       driver: json-file
       options:
