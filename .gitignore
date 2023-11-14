@@ -1,4 +1,6 @@
 emoncms/
+.env
 .docker-env
+default.docker-env
 *~
 .env
