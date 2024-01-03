@@ -13,6 +13,7 @@ services:
   web:
     # If pre-built image from docker hub exists then use that (docker pull openenergymonitor/emoncms:latest) if not build container see web/Dockerflile
     image: openenergymonitor/emoncms:latest
+    restart: unless-stopped
     build: web/.
     volumes:
       # mount docker volumes persistant inside docker container
@@ -40,6 +41,7 @@ services:
   # MYSQL Database
   db:
     image: mariadb:11.0
+    restart: unless-stopped
     environment:
       - "MYSQL_HOST=localhost"
       - "MARIADB_AUTO_UPGRADE=1"
@@ -57,6 +59,7 @@ services:
 
   redis:
     image: redis:7.0
+    restart: unless-stopped
     volumes:
       - emon-redis-data:/data
     logging:
@@ -68,7 +71,7 @@ services:
     image: eclipse-mosquitto:2.0
     build: mqtt/.
     profiles: [ "dontstart"] 
-    restart: always
+    restart: unless-stopped
     logging:
       driver: json-file
       options:
